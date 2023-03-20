@@ -59,14 +59,11 @@ pub fn rotate_propeller_over_time(
 ) {
     if propeller_rotation_timer.timer.finished() {
         for (entity, _, player) in player_query.iter() {
-            commands.entity(entity).despawn();
-
             let window = window_query.get_single().unwrap();
 
             let x = window.width() / 5.0;
             let y = window.height() / 2.0;
-
-            commands.spawn((
+            commands.entity(entity).insert((
                 SpriteBundle {
                     transform: Transform::from_xyz(x, y, 0.0),
                     texture: asset_server.load(get_asset_path(player.propeller_size)),
