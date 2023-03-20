@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{default, AssetServer, Commands, Entity, Query, Res, ResMut, Transform, With},
+    prelude::{default, AssetServer, Commands, Entity, Quat, Query, Res, ResMut, Transform, With},
     sprite::SpriteBundle,
     time::Time,
     window::{PrimaryWindow, Window},
@@ -7,7 +7,7 @@ use bevy::{
 
 use super::{
     components::{Player, PropellerSize, PropellerSizeTransform},
-    resources::PropellerRotationTimer,
+    resources::{PlaneDropTimer, PropellerRotationTimer},
 };
 
 fn get_asset_path(propeller_size: PropellerSize) -> String {
@@ -83,6 +83,21 @@ pub fn rotate_propeller_over_time(
                     },
                 },
             ));
+        }
+    }
+}
+
+pub fn tick_plane_drop_timer(mut plane_drop_timer: ResMut<PlaneDropTimer>, time: Res<Time>) {
+    plane_drop_timer.timer.tick(time.delta());
+}
+
+pub fn drop_plane_when_time_count_down(
+    mut player_query: Query<&mut Transform, With<Player>>,
+    plane_drop_timer: Res<PlaneDropTimer>,
+) {
+    if plane_drop_timer.timer.finished() {
+        for mut transform in player_query.iter_mut() {
+            transform.rotation = Quat::from_rotation_z(270.0);
         }
     }
 }
