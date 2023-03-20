@@ -1,7 +1,7 @@
-mod camera;
+mod sys;
 
-use bevy::{DefaultPlugins, prelude::App};
-use camera::CameraPlugin;
+use bevy::{prelude::App, DefaultPlugins};
+use sys::camera::CameraPlugin;
 
 fn main() {
     App::new()
