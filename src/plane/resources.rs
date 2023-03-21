@@ -4,7 +4,7 @@ use bevy::{
 };
 
 const PROPELLER_ROTATION_TIME: f32 = 0.1;
-const PLANE_DROP_TIME: f32 = 2.0;
+pub const PLANE_DROP_TIME: f32 = 2.0;
 
 #[derive(Resource)]
 pub struct PropellerRotationTimer {

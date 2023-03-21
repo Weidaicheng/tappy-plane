@@ -1,7 +1,9 @@
+use std::time::Duration;
+
 use bevy::{
     prelude::{
-        default, AssetServer, Commands, Handle, Image, Quat, Query, Res, ResMut, Transform, Vec3,
-        With,
+        default, AssetServer, Commands, Handle, Image, Input, KeyCode, Quat, Query, Res, ResMut,
+        Transform, Vec3, With,
     },
     sprite::SpriteBundle,
     time::Time,
@@ -10,8 +12,8 @@ use bevy::{
 
 use super::{
     components::{Plane, PropellerSize, PropellerSizeTransform},
-    resources::{PlaneDropTimer, PropellerRotationTimer},
-    PLANE_MOVE_SPEED,
+    resources::{PlaneDropTimer, PropellerRotationTimer, PLANE_DROP_TIME},
+    PLANE_CLIMB_SPEED, PLANE_DROP_SPEED,
 };
 
 fn get_asset_path(propeller_size: PropellerSize) -> String {
@@ -82,7 +84,7 @@ pub fn tick_plane_drop_timer(mut plane_drop_timer: ResMut<PlaneDropTimer>, time:
     plane_drop_timer.timer.tick(time.delta());
 }
 
-pub fn drop_plane_when_time_count_down(
+pub fn drop_plane_period(
     mut plane_query: Query<(&mut Transform, &mut Plane)>,
     plane_drop_timer: Res<PlaneDropTimer>,
 ) {
@@ -94,8 +96,34 @@ pub fn drop_plane_when_time_count_down(
     }
 }
 
-pub fn move_plane_over_time(mut plane_query: Query<(&mut Transform, &Plane)>, time: Res<Time>) {
+pub fn climb_plane(
+    mut plane_query: Query<(&mut Transform, &mut Plane)>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if keyboard_input.pressed(KeyCode::Space) {
+        for (mut transform, mut plane) in plane_query.iter_mut() {
+            transform.rotation = Quat::from_rotation_z(120.0);
+            plane.direction = Vec3::new(0.0, 1.0, 0.0);
+        }
+    }
+}
+
+pub fn plane_movement_over_time(
+    mut plane_query: Query<(&mut Transform, &Plane)>,
+    mut plane_drop_timer: ResMut<PlaneDropTimer>,
+    time: Res<Time>,
+) {
     for (mut transform, plane) in plane_query.iter_mut() {
-        transform.translation += plane.direction * PLANE_MOVE_SPEED * time.delta_seconds();
+        if plane.direction.y < 0.0 {
+            // dropping
+            plane_drop_timer.timer.reset();
+            transform.translation += plane.direction * PLANE_DROP_SPEED * time.delta_seconds();
+        } else if plane.direction.y > 0.0 {
+            // climbing
+            plane_drop_timer
+                .timer
+                .tick(Duration::from_secs_f32(PLANE_DROP_TIME / 50.0));
+            transform.translation += plane.direction * PLANE_CLIMB_SPEED * time.delta_seconds();
+        }
     }
 }

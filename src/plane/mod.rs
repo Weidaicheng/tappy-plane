@@ -7,12 +7,13 @@ use bevy::prelude::Plugin;
 use self::{
     resources::{PlaneDropTimer, PropellerRotationTimer},
     systems::{
-        drop_plane_when_time_count_down, rotate_propeller_over_time, spawn_plane,
-        tick_plane_drop_timer, tick_propeller_rotation_timer, move_plane_over_time,
+        climb_plane, drop_plane_period, plane_movement_over_time, rotate_propeller_over_time,
+        spawn_plane, tick_plane_drop_timer, tick_propeller_rotation_timer,
     },
 };
 
-const PLANE_MOVE_SPEED: f32 = 50.0;
+const PLANE_DROP_SPEED: f32 = 50.0;
+const PLANE_CLIMB_SPEED: f32 = 100.0;
 
 pub struct PlanePlugin;
 
@@ -24,7 +25,8 @@ impl Plugin for PlanePlugin {
             .add_system(tick_propeller_rotation_timer)
             .add_system(rotate_propeller_over_time)
             .add_system(tick_plane_drop_timer)
-            .add_system(drop_plane_when_time_count_down)
-            .add_system(move_plane_over_time);
+            .add_system(drop_plane_period)
+            .add_system(plane_movement_over_time)
+            .add_system(climb_plane);
     }
 }
