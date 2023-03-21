@@ -9,9 +9,9 @@ use bevy::{
 };
 
 use super::{
-    components::{Player, PropellerSize, PropellerSizeTransform},
+    components::{Plane, PropellerSize, PropellerSizeTransform},
     resources::{PlaneDropTimer, PropellerRotationTimer},
-    PLAYER_MOVE_SPEED,
+    PLANE_MOVE_SPEED,
 };
 
 fn get_asset_path(propeller_size: PropellerSize) -> String {
@@ -22,7 +22,7 @@ fn get_asset_path(propeller_size: PropellerSize) -> String {
     }
 }
 
-pub fn spawn_player(
+pub fn spawn_plane(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
@@ -32,7 +32,7 @@ pub fn spawn_player(
     let x = window.width() / 5.0;
     let y = window.height() / 2.0;
 
-    let player = Player {
+    let plane = Plane {
         direction: Vec3::new(0.0, 0.0, 0.0),
         propeller_size: PropellerSize::Large,
         propeller_size_transform: PropellerSizeTransform::Decrease,
@@ -41,10 +41,10 @@ pub fn spawn_player(
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_xyz(x, y, 0.0),
-            texture: asset_server.load(get_asset_path(player.propeller_size)),
+            texture: asset_server.load(get_asset_path(plane.propeller_size)),
             ..default()
         },
-        player,
+        plane,
     ));
 }
 
@@ -56,24 +56,24 @@ pub fn tick_propeller_rotation_timer(
 }
 
 pub fn rotate_propeller_over_time(
-    mut player_query: Query<(&mut Handle<Image>, &mut Player)>,
+    mut plane_query: Query<(&mut Handle<Image>, &mut Plane)>,
     propeller_rotation_timer: Res<PropellerRotationTimer>,
     asset_server: Res<AssetServer>,
 ) {
     if propeller_rotation_timer.timer.finished() {
-        for (mut handle, mut player) in player_query.iter_mut() {
-            player.propeller_size = match player.propeller_size {
-                PropellerSize::Middle => match player.propeller_size_transform {
+        for (mut handle, mut plane) in plane_query.iter_mut() {
+            plane.propeller_size = match plane.propeller_size {
+                PropellerSize::Middle => match plane.propeller_size_transform {
                     PropellerSizeTransform::Increase => PropellerSize::Large,
                     PropellerSizeTransform::Decrease => PropellerSize::Tiny,
                 },
                 _ => PropellerSize::Middle,
             };
-            player.propeller_size_transform = match player.propeller_size_transform {
+            plane.propeller_size_transform = match plane.propeller_size_transform {
                 PropellerSizeTransform::Increase => PropellerSizeTransform::Decrease,
                 PropellerSizeTransform::Decrease => PropellerSizeTransform::Increase,
             };
-            *handle = asset_server.load(get_asset_path(player.propeller_size));
+            *handle = asset_server.load(get_asset_path(plane.propeller_size));
         }
     }
 }
@@ -83,19 +83,19 @@ pub fn tick_plane_drop_timer(mut plane_drop_timer: ResMut<PlaneDropTimer>, time:
 }
 
 pub fn drop_plane_when_time_count_down(
-    mut player_query: Query<(&mut Transform, &mut Player)>,
+    mut plane_query: Query<(&mut Transform, &mut Plane)>,
     plane_drop_timer: Res<PlaneDropTimer>,
 ) {
     if plane_drop_timer.timer.finished() {
-        for (mut transform, mut player) in player_query.iter_mut() {
+        for (mut transform, mut plane) in plane_query.iter_mut() {
             transform.rotation = Quat::from_rotation_z(270.0);
-            player.direction = Vec3::new(0.0, -1.0, 0.0);
+            plane.direction = Vec3::new(0.0, -1.0, 0.0);
         }
     }
 }
 
-pub fn move_plane_over_time(mut player_query: Query<(&mut Transform, &Player)>, time: Res<Time>) {
-    for (mut transform, player) in player_query.iter_mut() {
-        transform.translation += player.direction * PLAYER_MOVE_SPEED * time.delta_seconds();
+pub fn move_plane_over_time(mut plane_query: Query<(&mut Transform, &Plane)>, time: Res<Time>) {
+    for (mut transform, plane) in plane_query.iter_mut() {
+        transform.translation += plane.direction * PLANE_MOVE_SPEED * time.delta_seconds();
     }
 }

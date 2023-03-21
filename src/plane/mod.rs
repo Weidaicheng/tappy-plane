@@ -7,20 +7,20 @@ use bevy::prelude::Plugin;
 use self::{
     resources::{PlaneDropTimer, PropellerRotationTimer},
     systems::{
-        drop_plane_when_time_count_down, rotate_propeller_over_time, spawn_player,
+        drop_plane_when_time_count_down, rotate_propeller_over_time, spawn_plane,
         tick_plane_drop_timer, tick_propeller_rotation_timer, move_plane_over_time,
     },
 };
 
-const PLAYER_MOVE_SPEED: f32 = 50.0;
+const PLANE_MOVE_SPEED: f32 = 50.0;
 
-pub struct PlayerPlugin;
+pub struct PlanePlugin;
 
-impl Plugin for PlayerPlugin {
+impl Plugin for PlanePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<PropellerRotationTimer>()
             .init_resource::<PlaneDropTimer>()
-            .add_startup_system(spawn_player)
+            .add_startup_system(spawn_plane)
             .add_system(tick_propeller_rotation_timer)
             .add_system(rotate_propeller_over_time)
             .add_system(tick_plane_drop_timer)
