@@ -1,5 +1,7 @@
 use bevy::{
-    prelude::{default, AssetServer, Commands, Entity, Quat, Query, Res, ResMut, Transform, With},
+    prelude::{
+        default, AssetServer, Commands, Handle, Image, Quat, Query, Res, ResMut, Transform, With,
+    },
     sprite::SpriteBundle,
     time::Time,
     window::{PrimaryWindow, Window},
@@ -51,38 +53,24 @@ pub fn tick_propeller_rotation_timer(
 }
 
 pub fn rotate_propeller_over_time(
-    mut commands: Commands,
-    player_query: Query<(Entity, &Transform, &Player)>,
+    mut player_query: Query<(&mut Handle<Image>, &mut Player)>,
     propeller_rotation_timer: Res<PropellerRotationTimer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
     if propeller_rotation_timer.timer.finished() {
-        for (entity, _, player) in player_query.iter() {
-            let window = window_query.get_single().unwrap();
-
-            let x = window.width() / 5.0;
-            let y = window.height() / 2.0;
-            commands.entity(entity).insert((
-                SpriteBundle {
-                    transform: Transform::from_xyz(x, y, 0.0),
-                    texture: asset_server.load(get_asset_path(player.propeller_size)),
-                    ..default()
+        for (mut handle, mut player) in player_query.iter_mut() {
+            player.propeller_size = match player.propeller_size {
+                PropellerSize::Middle => match player.propeller_size_transform {
+                    PropellerSizeTransform::Increase => PropellerSize::Large,
+                    PropellerSizeTransform::Decrease => PropellerSize::Tiny,
                 },
-                Player {
-                    propeller_size: match player.propeller_size {
-                        PropellerSize::Middle => match player.propeller_size_transform {
-                            PropellerSizeTransform::Increase => PropellerSize::Large,
-                            PropellerSizeTransform::Decrease => PropellerSize::Tiny,
-                        },
-                        _ => PropellerSize::Middle,
-                    },
-                    propeller_size_transform: match player.propeller_size_transform {
-                        PropellerSizeTransform::Increase => PropellerSizeTransform::Decrease,
-                        PropellerSizeTransform::Decrease => PropellerSizeTransform::Increase,
-                    },
-                },
-            ));
+                _ => PropellerSize::Middle,
+            };
+            player.propeller_size_transform = match player.propeller_size_transform {
+                PropellerSizeTransform::Increase => PropellerSizeTransform::Decrease,
+                PropellerSizeTransform::Decrease => PropellerSizeTransform::Increase,
+            };
+            *handle = asset_server.load(get_asset_path(player.propeller_size));
         }
     }
 }
