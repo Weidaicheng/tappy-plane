@@ -13,7 +13,7 @@ use bevy::{
 use super::{
     components::{Plane, PropellerSize, PropellerSizeTransform},
     resources::{PlaneDropTimer, PropellerRotationTimer, PLANE_DROP_TIME},
-    PLANE_CLIMB_SPEED, PLANE_DROP_SPEED,
+    PLANE_CLIMB_SPEED, PLANE_DROP_SPEED, PLANE_HEIGHT,
 };
 
 fn get_asset_path(propeller_size: PropellerSize) -> String {
@@ -124,6 +124,22 @@ pub fn plane_movement_over_time(
                 .timer
                 .tick(Duration::from_secs_f32(PLANE_DROP_TIME / 50.0));
             transform.translation += plane.direction * PLANE_CLIMB_SPEED * time.delta_seconds();
+        }
+    }
+}
+
+pub fn confine_plane_movement(
+    mut plane_query: Query<&mut Transform, With<Plane>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for mut transform in plane_query.iter_mut() {
+        if transform.translation.y - PLANE_HEIGHT / 2.0 < 0.0 {
+            transform.translation.y = PLANE_HEIGHT / 2.0;
+        }
+        if transform.translation.y + PLANE_HEIGHT / 2.0 > window.height() {
+            transform.translation.y = window.height() - PLANE_HEIGHT / 2.0;
         }
     }
 }
