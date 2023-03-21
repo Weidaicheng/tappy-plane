@@ -50,11 +50,13 @@ pub fn spawn_plane(
     ));
 }
 
-pub fn tick_propeller_rotation_timer(
+pub fn tick_timer(
     mut propeller_rotation_timer: ResMut<PropellerRotationTimer>,
+    mut plane_drop_timer: ResMut<PlaneDropTimer>,
     time: Res<Time>,
 ) {
     propeller_rotation_timer.timer.tick(time.delta());
+    plane_drop_timer.timer.tick(time.delta());
 }
 
 pub fn rotate_propeller_over_time(
@@ -78,10 +80,6 @@ pub fn rotate_propeller_over_time(
             *handle = asset_server.load(get_asset_path(plane.propeller_size));
         }
     }
-}
-
-pub fn tick_plane_drop_timer(mut plane_drop_timer: ResMut<PlaneDropTimer>, time: Res<Time>) {
-    plane_drop_timer.timer.tick(time.delta());
 }
 
 pub fn drop_plane_period(
