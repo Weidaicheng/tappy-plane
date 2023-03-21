@@ -1,4 +1,4 @@
-use bevy::prelude::Component;
+use bevy::prelude::{Component, Vec3};
 
 #[derive(Clone, Copy)]
 pub enum PropellerSize {
@@ -15,6 +15,7 @@ pub enum PropellerSizeTransform {
 
 #[derive(Component, Clone, Copy)]
 pub struct Player {
+    pub direction: Vec3,
     pub propeller_size: PropellerSize,
     pub propeller_size_transform: PropellerSizeTransform,
 }

@@ -1,6 +1,7 @@
 use bevy::{
     prelude::{
-        default, AssetServer, Commands, Handle, Image, Quat, Query, Res, ResMut, Transform, With,
+        default, AssetServer, Commands, Handle, Image, Quat, Query, Res, ResMut, Transform, Vec3,
+        With,
     },
     sprite::SpriteBundle,
     time::Time,
@@ -10,6 +11,7 @@ use bevy::{
 use super::{
     components::{Player, PropellerSize, PropellerSizeTransform},
     resources::{PlaneDropTimer, PropellerRotationTimer},
+    PLAYER_MOVE_SPEED,
 };
 
 fn get_asset_path(propeller_size: PropellerSize) -> String {
@@ -31,6 +33,7 @@ pub fn spawn_player(
     let y = window.height() / 2.0;
 
     let player = Player {
+        direction: Vec3::new(0.0, 0.0, 0.0),
         propeller_size: PropellerSize::Large,
         propeller_size_transform: PropellerSizeTransform::Decrease,
     };
@@ -80,12 +83,19 @@ pub fn tick_plane_drop_timer(mut plane_drop_timer: ResMut<PlaneDropTimer>, time:
 }
 
 pub fn drop_plane_when_time_count_down(
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut Player)>,
     plane_drop_timer: Res<PlaneDropTimer>,
 ) {
     if plane_drop_timer.timer.finished() {
-        for mut transform in player_query.iter_mut() {
+        for (mut transform, mut player) in player_query.iter_mut() {
             transform.rotation = Quat::from_rotation_z(270.0);
+            player.direction = Vec3::new(0.0, -1.0, 0.0);
         }
+    }
+}
+
+pub fn move_plane_over_time(mut player_query: Query<(&mut Transform, &Player)>, time: Res<Time>) {
+    for (mut transform, player) in player_query.iter_mut() {
+        transform.translation += player.direction * PLAYER_MOVE_SPEED * time.delta_seconds();
     }
 }
